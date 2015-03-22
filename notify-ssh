@@ -2,12 +2,25 @@
 # Display notify-send notifications via remote ssh terminal
 
 
-for ppid in $(pgrep -u "$USER" 2>/dev/null); do
-    dbus=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$ppid/environ" 2>/dev/null)
-    if [[ -n $dbus ]]; then
-        export DBUS_SESSION_BUS_ADDRESS=$dbus
-        break
-    fi
-done
+ppidlist=$(pgrep -u "$USER" 2>/dev/null | paste -sd ' ')
 
-notify-send "$@"
+if [[ $ppidlist =~ ([0-9]+\ )*[0-9]+ ]]; then
+    for ppid in $ppidlist; do
+        address=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$ppid/environ" 2>/dev/null)
+        if [[ -n $address ]]; then
+            export DBUS_SESSION_BUS_ADDRESS=$address
+            flag=success
+            break
+        fi
+    done
+
+    if [[ $flag = success ]]; then
+        notify-send "$@"
+    else
+        echo "${0##*/}: unable to detect DBUS_SESSION_BUS_ADDRESS for '$USER'" >&2
+        exit 1
+    fi
+else
+    echo "${0##*/}: unable to detect ppids in use by '$USER'" >&2
+    exit 1
+fi
