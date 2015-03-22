@@ -1,0 +1,13 @@
+#!/bin/bash
+# Display notify-send notifications via remote ssh terminal
+
+
+for ppid in $(pgrep -u "$USER" 2>/dev/null); do
+    dbus=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$ppid/environ" 2>/dev/null)
+    if [[ -n $dbus ]]; then
+        export DBUS_SESSION_BUS_ADDRESS=$dbus
+        break
+    fi
+done
+
+notify-send "$@"
