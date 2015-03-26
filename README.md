@@ -2,13 +2,12 @@
 
 A notify-send wrapper for use via remote shell. Display desktop notifications remotely.
 
-
 Installation
 ------------
 
-On the system in which you want the notifications to be displayed, copy notify-ssh to /usr/local/bin and mark as executable.
+Install notify-ssh on the system in which you want the notifications to be displayed:
 
-    sudo chmod a+x /usr/local/bin/notify-ssh
+    sudo install notify-ssh /usr/local/bin
 
 Usage
 -----
