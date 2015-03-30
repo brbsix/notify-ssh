@@ -2,25 +2,46 @@
 # Display notify-send notifications via remote SSH
 
 
-if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
-    pidlist=$(pgrep -u "$USER" 2>/dev/null)
-    if [[ -n $pidlist ]]; then
-        for pid in $pidlist; do
-            address=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$pid/environ" 2>/dev/null)
-            if [[ -n $address ]]; then
-                export DBUS_SESSION_BUS_ADDRESS=$address
-                break
-            fi
-        done
-    else
-        echo "${0##*/}: unable to detect pids in use by '$USER'" >&2
-        exit 1
+# pgrep for $USER owned dbus-daemon process then grep their ps output
+getaddress(){
+    address=$(pgrep -u "$USER" 'dbus-daemon' | xargs ps -o command= | grep -oP '(?<=--address=).*')
+    if [[ -n $address ]]; then
+        export DBUS_SESSION_BUS_ADDRESS=$address
     fi
+}
+
+# grep through ps output from all $USER processes for the dbus-daemon process
+# getaddress(){
+#     address=$(ps -u "$USER" -o command= | grep -E '^dbus-daemon.*--address=unix:abstract=/tmp/dbus-[A-Za-z0-9]{10}' | tail -c35)
+#     if [[ -n $address ]]; then
+#         export DBUS_SESSION_BUS_ADDRESS=$address
+#     fi
+# }
+
+# scan through environ of all $USER processes
+# getaddress(){
+#     pidlist=$(pgrep -u "$USER" 2>/dev/null)
+#     if [[ -n $pidlist ]]; then
+#         for pid in $pidlist; do
+#             address=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$pid/environ" 2>/dev/null)
+#             if [[ -n $address ]]; then
+#                 export DBUS_SESSION_BUS_ADDRESS=$address
+#                 break
+#             fi
+#         done
+#     else
+#         echo "${0##*/}: unable to detect pids in use by '$USER'" >&2
+#         exit 1
+#     fi
+# }
+
+if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
+    getaddress
 fi
 
-if [[ -n $DBUS_SESSION_BUS_ADDRESS ]]; then
-    notify-send "$@"
-else
+if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
     echo "${0##*/}: unable to detect DBUS_SESSION_BUS_ADDRESS for '$USER'" >&2
     exit 1
+else
+    notify-send "$@"
 fi
