@@ -4,7 +4,7 @@
 
 # pgrep for $USER owned dbus-daemon process then grep their ps output
 getaddress(){
-    address=$(pgrep -u "$USER" 'dbus-daemon' | xargs ps -o command= | grep -oP '(?<=--address=).*')
+    address=$(pgrep --euid "$USER" --full --list-full --newest 'dbus-daemon.*--address=' | grep -oP '(?<=--address=)[^ ]+')
     if [[ -n $address ]]; then
         export DBUS_SESSION_BUS_ADDRESS=$address
     fi
