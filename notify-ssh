@@ -2,15 +2,26 @@
 # Display notify-send notifications via remote SSH
 
 
-# pgrep for $USER owned dbus-daemon process then grep their ps output
+PROGRAM=${0##*/}
+
+# NOTE: replace ??? with the username you'd like to default to as root
+if [[ $USER = root ]]; then
+    user=???
+else
+    user=$USER
+fi
+
+
+# pgrep for $user owned dbus-daemon process then grep for the address
 getaddress(){
-    address=$(pgrep --euid "$USER" --full --list-full --newest 'dbus-daemon.*--address=' | grep -oP '(?<=--address=)[^ ]+')
+    address=$(pgrep --euid "$user" --full --list-full --newest 'dbus-daemon.*--address=' | grep -oP '(?<=--address=)[^ ]+')
+
     if [[ -n $address ]]; then
         export DBUS_SESSION_BUS_ADDRESS=$address
     fi
 }
 
-# grep through ps output from all $USER processes for the dbus-daemon process
+# grep through ps output from all $user owned processes for the dbus-daemon address
 # getaddress(){
 #     address=$(ps -u "$USER" -o command= | grep -E '^dbus-daemon.*--address=unix:abstract=/tmp/dbus-[A-Za-z0-9]{10}' | tail -c35)
 #     if [[ -n $address ]]; then
@@ -18,7 +29,7 @@ getaddress(){
 #     fi
 # }
 
-# scan through environ of all $USER processes
+# scan through environ of all $user processes
 # getaddress(){
 #     pidlist=$(pgrep -u "$USER" 2>/dev/null)
 #     if [[ -n $pidlist ]]; then
@@ -40,7 +51,7 @@ if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
 fi
 
 if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
-    echo "${0##*/}: unable to detect DBUS_SESSION_BUS_ADDRESS for '$USER'" >&2
+    echo "$PROGRAM: Unable to detect DBUS_SESSION_BUS_ADDRESS for '$user'" >&2
     exit 1
 else
     notify-send "$@"
