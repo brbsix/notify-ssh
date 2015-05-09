@@ -53,14 +53,13 @@ getaddress(){
 
 notify(){
     if [[ $USER = root ]]; then
-        local tempdir=$(mktemp -d)
-        local pipefile="$tempdir/$RANDOM"
-        trap "rm -rf '$tempdir'; exit 0" EXIT
-        trap "rm -rf '$tempdir'; exit 1" HUP INT QUIT TERM
-        mkfifo -m 0600 "$pipefile"
-        sudo -u "$user" notify-send "$@" >"$pipefile" 2>&1 &
-        msg=$(< "$pipefile")
+
+        # execute notify-send as $user
+        local msg=$(sudo -u "$user" notify-send "$@" 2>&1)
+
+        # silence standard error message
         [[ $msg = 'Sessions still open, not unmounting' ]] || echo "$msg"
+
     else
         notify-send "$@"
     fi
