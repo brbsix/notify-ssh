@@ -50,6 +50,22 @@ getaddress(){
 #     done
 # }
 
+notify(){
+    if [[ $USER = root ]]; then
+        local tempdir=$(mktemp -d)
+        local pipefile="$tempdir/$RANDOM"
+        trap "rm -rf '$tempdir'; exit 1" HUP INT QUIT TERM
+        mkfifo -m 0600 "$pipefile"
+        sudo -u "$user" notify-send "$@" >"$pipefile" 2>&1 &
+        msg=$(< "$pipefile")
+        [[ $msg = 'Sessions still open, not unmounting' ]] || echo "$msg"
+        rm -rf "$tempdir"
+    else
+        notify-send "$@"
+    fi
+}
+
+
 if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
     getaddress
 fi
@@ -58,5 +74,5 @@ if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
     echo "$PROGRAM: Unable to detect DBUS_SESSION_BUS_ADDRESS for '$user'" >&2
     exit 1
 else
-    notify-send "$@"
+    notify "$@"
 fi
