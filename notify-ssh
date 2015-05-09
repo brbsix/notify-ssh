@@ -23,7 +23,9 @@ getaddress(){
 
 # grep through ps output from all $user owned processes for the dbus-daemon address
 # getaddress(){
-#     address=$(ps -u "$USER" -o command= | grep -E '^dbus-daemon.*--address=unix:abstract=/tmp/dbus-[A-Za-z0-9]{10}' | tail -c35)
+#     # address=$(ps -u "$user" -o command= | grep -E '^dbus-daemon.*--address=unix:abstract=/tmp/dbus-[A-Za-z0-9]{10}' | tail -c35)
+#     address=$(ps -u "$user" -o command= | awk '{ match($0, /^dbus-daemon.+--address=([^ ]+)/, x); { a=x[1] } }; ( length(a)>0 ) {print a; exit}')
+
 #     if [[ -n $address ]]; then
 #         export DBUS_SESSION_BUS_ADDRESS=$address
 #     fi
