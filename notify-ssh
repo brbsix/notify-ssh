@@ -38,7 +38,7 @@ getaddress(){
 #     local pidlist=( $(pgrep -u "$user" 2>/dev/null) )
 
 #     if (( ${#pidlist[@]} == 0 )); then
-#         echo "$PROGRAM: unable to detect pids in use by '$user'" >&2
+#         echo "$PROGRAM: Unable to detect PIDs in use by '$user'" >&2
 #         exit 1
 #     fi
 
