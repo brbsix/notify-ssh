@@ -33,19 +33,21 @@ getaddress(){
 
 # scan through environ of all $user processes
 # getaddress(){
-#     pidlist=$(pgrep -u "$USER" 2>/dev/null)
-#     if [[ -n $pidlist ]]; then
-#         for pid in $pidlist; do
-#             address=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$pid/environ" 2>/dev/null)
-#             if [[ -n $address ]]; then
-#                 export DBUS_SESSION_BUS_ADDRESS=$address
-#                 break
-#             fi
-#         done
-#     else
-#         echo "${0##*/}: unable to detect pids in use by '$USER'" >&2
+#     local pid
+#     local pidlist=( $(pgrep -u "$user" 2>/dev/null) )
+
+#     if (( ${#pidlist[@]} == 0 )); then
+#         echo "$PROGRAM: unable to detect pids in use by '$user'" >&2
 #         exit 1
 #     fi
+
+#     for pid in "${pidlist[@]}"; do
+#         address=$(grep -oPz '(?<=DBUS_SESSION_BUS_ADDRESS=).*' "/proc/$pid/environ" 2>/dev/null)
+#         if [[ -n $address ]]; then
+#             export DBUS_SESSION_BUS_ADDRESS=$address
+#             break
+#         fi
+#     done
 # }
 
 if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
